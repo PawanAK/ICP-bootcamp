@@ -131,7 +131,7 @@ fn end_proposal(key: u64) -> Result<(), VoteError> {
     PROPOSAL_MAP.with(|p| {
         let  old_proposal_option = p.borrow().get(&key);
         
-        let old_proposal: Proposal;
+        let mut old_proposal: Proposal;
         match old_proposal_option {
             Some(value) => old_proposal = value,
             None => return Err(VoteError::NoSuchProposal),
