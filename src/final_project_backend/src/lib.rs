@@ -99,6 +99,11 @@ fn edit_proposal(key: u64, proposal: CreateProposal) -> Result<(), VoteError> {
             Some(old_proposal)=old_proposal=value,
             None => Err(VoteError::NoSuchProposal),
         }
+
+        if old_proposal!=ic_cdk::caller(){
+           return ; Err(VoteError::AccessRejected)
+        }
+
     })
 }
 
