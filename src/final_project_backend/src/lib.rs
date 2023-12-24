@@ -62,6 +62,7 @@ thread_local! {
 
 }
 
+
 // #[ic_cdk::query]
 // fn get_proposal(key: u64) -> Option<Proposal> {}
 
