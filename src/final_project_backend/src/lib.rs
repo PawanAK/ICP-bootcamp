@@ -93,18 +93,19 @@ fn create_proposal(key: u64, proposal: CreateProposal) -> Option<Proposal> {
 }
 
 #[ic_cdk::update]
+
 fn edit_proposal(key: u64, proposal: CreateProposal) -> Result<(), VoteError> {
     PROPOSAL_MAP.with(|p| {
-        let old_proposal = p.borrow().get(&key);
-        let old_proposal:Proposal;
+        let mut proposal_map = p.borrow_mut();
         
-        match old_proposal {
-            Some(old_proposal)=old_proposal=value,
-            None => Err(VoteError::NoSuchProposal),
-        }
+        let old_proposal = proposal_map.get(&key).cloned();
+        let old_proposal = match old_proposal {
+            Some(value) => value,
+            None => return Err(VoteError::NoSuchProposal),
+        };
 
-        if old_proposal!=ic_cdk::caller(){
-           return ; Err(VoteError::AccessRejected);
+        if old_proposal.owner != ic_cdk::caller() {
+            return Err(VoteError::AccessRejected);
         }
 
         let value = Proposal {
@@ -114,19 +115,16 @@ fn edit_proposal(key: u64, proposal: CreateProposal) -> Result<(), VoteError> {
             pass: old_proposal.pass,
             is_active: proposal.is_active,
             voted: old_proposal.voted,
-            owner: old_proposal.owner
-
+            owner: old_proposal.owner,
         };
 
-        let res=p.borrow_mut().insert(key, value);
-
-        match res {
-            Ok(_)=>Ok(()),
-            Err(_)=>Err(VoteError::UpdateError),
+        match proposal_map.insert(key, value) {
+            Some(_) => Ok(()),
+            None => Err(VoteError::UpdateError),
         }
-
     })
 }
+
 
 #[ic_cdk::update]
 fn end_proposal(key: u64) -> Result<(), VoteError> {
