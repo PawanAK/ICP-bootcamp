@@ -40,7 +40,7 @@ struct CreateProposal{
     is_active:bool,
 }
 
-impl Storable {
+impl Storable for Proposal {
     fn to_bytes(&self) -> Cow<[u8]> {
         Cow::Owned(Encode!(self).unwrap())
     }
@@ -50,13 +50,15 @@ impl Storable {
     }
 }
 
-impl BoundedStorable {
+impl BoundedStorable  for Proposal {
     const MAX_SIZE: u32 = MAX_VALUE_SIZE;
     const IS_FIXED_SIZE: bool = false;
 }
 
 thread_local! {
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> = RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
+
+    static PROPOSAL_MAP: RefCell<StableBTreeMap< u64, Proposal , Memory>> = RefCell::new(StableBTreeMap::init MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))));
 
 }
 
