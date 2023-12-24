@@ -7,6 +7,21 @@ type Memory = VirtualMemory<DefaultMemoryImpl>;
 
 const MAX_VALUE_SIZE: u32 = 5000;
 
+#[derive(Debug,CandidType,Deserialize)]
+enum Choice {
+    Approve,
+    Reject,
+    Pass,
+}
+
+enum VoteError{
+    AlreadyVoted,
+    ProposalIsNotActive,
+    NoSuchProposal,
+    AccessRejected,
+    UpdateError,
+}
+
 // impl Storable {
 //     fn to_bytes(&self) -> Cow<[u8]> {
 //         Cow::Owned(Encode!(self).unwrap())
