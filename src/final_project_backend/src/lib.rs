@@ -1,3 +1,4 @@
+use candid::bindings::javascript::value;
 use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{BoundedStorable, DefaultMemoryImpl, StableBTreeMap, Storable};
@@ -31,7 +32,7 @@ struct Proposal {
     pass:u32,
     is_active:u32,
     voted:Vec<candid::Principal>,
-    owner:candid:Principal
+    owner:candid::Principal,
 }
 
 #[derive(Debug,CandidType,Deserialize)]
@@ -83,10 +84,23 @@ fn create_proposal(key: u64, proposal: CreateProposal) -> Option<Proposal> {
         is_active: proposal.is_active,
         voted: vec![],
         owner: ic_cdk::caller(),
+    };
+
+    PROPOSAL_MAP.with(|p| p.borrow_mut().insert(key, value))
 }
 
 #[ic_cdk::update]
-fn edit_proposal(key: u64, proposal: CreateProposal) -> Result<(), VoteError> {}
+fn edit_proposal(key: u64, proposal: CreateProposal) -> Result<(), VoteError> {
+    PROPOSAL_MAP.with(|p| {
+        let old_proposal = p.borrow().get(&key);
+        let old_proposal:Proposal;
+        
+        match old_proposal {
+            Some(old_proposal)=old_proposal=value,
+            None => Err(VoteError::NoSuchProposal),
+        }
+    })
+}
 
 #[ic_cdk::update]
 fn end_proposal(key: u64) -> Result<(), VoteError> {}
