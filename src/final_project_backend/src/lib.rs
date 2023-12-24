@@ -30,7 +30,7 @@ struct Proposal {
     approve:u32,
     reject:u32,
     pass:u32,
-    is_active:u32,
+    is_active:bool,
     voted:Vec<candid::Principal>,
     owner:candid::Principal,
 }
@@ -126,7 +126,63 @@ fn edit_proposal(key: u64, proposal: CreateProposal) -> Result<(), VoteError> {
 }
 
 #[ic_cdk::update]
-fn end_proposal(key: u64) -> Result<(), VoteError> {}
+fn end_proposal(key: u64) -> Result<(), VoteError> {
+    PROPOSAL_MAP.with(|p| {
+        let  old_proposal_option = p.borrow().get(&key);
+        
+        let old_proposal: Proposal;
+        match old_proposal_option {
+            Some(value) => old_proposal = value,
+            None => return Err(VoteError::NoSuchProposal),
+        }
+
+        if old_proposal.owner != ic_cdk::caller() {
+           return Err(VoteError::AccessRejected);
+        }
+
+        old_proposal.is_active = false;
+
+        let res = p.borrow_mut().insert(key, old_proposal);
+
+        match res {
+            Some(_) => Ok(()),
+            None => Err(VoteError::UpdateError),
+        }
+    })
+}
 
 #[ic_cdk::update]
-fn vote(key: u64, choice: Choice) -> Result<(), VoteError> {}
+fn vote(key: u64, choice: Choice) -> Result<(), VoteError> {
+    PROPOSAL_MAP.with(|p|{
+        let proposal_opt = p.borrow().get(&key);
+        let mut proposal:Proposal;
+        
+        match proposal_opt {
+            Some(Proposal)=>proposal=value,
+            None => Err(VoteError::NoSuchProposal),
+        }
+
+        let caller = ic_cdk::caller();
+
+        if proposal.voted.contains(&caller) {
+            return Err(VoteError::AlreadyVoted);
+        }
+        else if proposal.is_active !=true {
+            return Err(VoteError::ProposalIsNotActive);
+        }
+
+        match choice {
+            Choice::Approve => proposal.approve += 1,
+            Choice::Pass => proposal.pass -= 1,
+            Choice::Reject => proposal.reject += 1,
+        }
+
+        proposal.voted.push(caller);
+        let res = p.borrow_mut().insert(key, proposal);
+
+        match res {
+            Some(_) => Ok(()),
+            None => Err(VoteError::UpdateError),
+        }
+    })
+}
