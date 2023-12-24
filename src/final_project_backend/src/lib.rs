@@ -101,7 +101,25 @@ fn edit_proposal(key: u64, proposal: CreateProposal) -> Result<(), VoteError> {
         }
 
         if old_proposal!=ic_cdk::caller(){
-           return ; Err(VoteError::AccessRejected)
+           return ; Err(VoteError::AccessRejected);
+        }
+
+        let value = Proposal {
+            description: proposal.description,
+            approve: old_proposal.approve,
+            reject: old_proposal.reject,
+            pass: old_proposal.pass,
+            is_active: proposal.is_active,
+            voted: old_proposal.voted,
+            owner: old_proposal.owner
+
+        };
+
+        let res=p.borrow_mut().insert(key, value);
+
+        match res {
+            Ok(_)=>Ok(()),
+            Err(_)=>Err(VoteError::UpdateError),
         }
 
     })
