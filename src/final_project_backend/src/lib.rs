@@ -63,20 +63,33 @@ thread_local! {
 }
 
 
-// #[ic_cdk::query]
-// fn get_proposal(key: u64) -> Option<Proposal> {}
+#[ic_cdk::query]
+fn get_proposal(key: u64) -> Option<Proposal> {
+    return PROPOSAL_MAP.with(|p| p.borrow().get(&key))
+}
 
-// #[ic_cdk::query]
-// fn get_proposal_count() -> u64 {}
+#[ic_cdk::query]
+fn get_proposal_count() -> u64 {
+    return PROPOSAL_MAP.with(|p| p.borrow().len() )
+}
 
-// #[ic_cdk::update]
-// fn create_proposal(key: u64, proposal: CreateProposal) -> Option<Proposal> {}
+#[ic_cdk::update]
+fn create_proposal(key: u64, proposal: CreateProposal) -> Option<Proposal> {
+    let value = Proposal {
+        description: proposal.description,
+        approve: 0u32,
+        pass: 0u32,
+        reject: 0u32,
+        is_active: proposal.is_active,
+        voted: vec![],
+        owner: ic_cdk::caller(),
+}
 
-// #[ic_cdk::update]
-// fn edit_proposal(key: u64, proposal: CreateProposal) -> Result<(), VoteError> {}
+#[ic_cdk::update]
+fn edit_proposal(key: u64, proposal: CreateProposal) -> Result<(), VoteError> {}
 
-// #[ic_cdk::update]
-// fn end_proposal(key: u64) -> Result<(), VoteError> {}
+#[ic_cdk::update]
+fn end_proposal(key: u64) -> Result<(), VoteError> {}
 
-// #[ic_cdk::update]
-// fn vote(key: u64, choice: Choice) -> Result<(), VoteError> {}
+#[ic_cdk::update]
+fn vote(key: u64, choice: Choice) -> Result<(), VoteError> {}
